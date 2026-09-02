@@ -1,9 +1,9 @@
 import React from 'react';
 
 /**
- * VoiceStudio's compact mark: a rounded speech waveform with one small spark.
- * The desktop icon uses the same silhouette on a dark tile; app chrome keeps
- * it transparent so it stays crisp at titlebar sizes and in every theme.
+ * Rich Future Voice's compact mark: a rising signal inside a soft frame.
+ * Keep the legacy component name so engine-facing imports and persisted app
+ * state remain compatible with the upstream VoiceStudio project.
  */
 export default function VoiceStudioMark({ className = '', title, ...props }) {
   return (
@@ -16,17 +16,14 @@ export default function VoiceStudioMark({ className = '', title, ...props }) {
       {...props}
     >
       {title ? <title>{title}</title> : null}
+      <rect x="7" y="7" width="50" height="50" rx="16" stroke="currentColor" opacity="0.24" />
+      <path d="M17 38V30M25 42V22M33 38V27" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
       <path
-        d="M6 34c4 0 5-7 9-7 5 0 4 14 9 14 5 0 4-23 9-23s4 28 9 28 4-21 9-21c4 0 5 9 8 9"
+        d="M38 33 50 21m-9 0h9v9"
         stroke="currentColor"
-        strokeWidth="5.5"
+        strokeWidth="4.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-      <path
-        d="M50 9c.7 4.3 3.7 7.3 8 8-4.3.7-7.3 3.7-8 8-.7-4.3-3.7-7.3-8-8 4.3-.7 7.3-3.7 8-8Z"
-        fill="currentColor"
-        opacity="0.72"
       />
     </svg>
   );

@@ -58,6 +58,7 @@ import { isTauri, askConfirm } from '../components/settings/native';
 
 // Persist the last-opened category so re-opening Settings lands where you left.
 const LS_CATEGORY = 'omnivoice.settings.category';
+const IS_RICH_FUTURE_BRAND = import.meta.env.VITE_RICH_FUTURE_BRAND === '1';
 
 /**
  * Settings — a sidebar-nav + content-pane hub (macOS System Settings / VS Code
@@ -107,10 +108,17 @@ export default function Settings() {
   // Search → filtered category ids. Label-aware so it matches translated names;
   // `t` also lets each category's keywordKeys match in the active UI language.
   const visibleIds = useMemo(
-    () => matchCategories(query, (c) => t(c.labelKey, { defaultValue: c.defaultLabel }), t),
+    () =>
+      matchCategories(query, (c) => t(c.labelKey, { defaultValue: c.defaultLabel }), t).filter(
+        (id) => !IS_RICH_FUTURE_BRAND || id !== 'updates',
+      ),
     [query, t],
   );
   const visibleSet = useMemo(() => new Set(visibleIds), [visibleIds]);
+
+  useEffect(() => {
+    if (IS_RICH_FUTURE_BRAND && active === 'updates') setActive('about');
+  }, [active, setActive]);
 
   // Bonus: typing a query that matches a *setting* (or another category) jumps
   // selection to the first match when the current category falls out of view.
@@ -221,7 +229,7 @@ export default function Settings() {
     })();
     const fmtGB = (v) => (typeof v === 'number' ? `${v.toFixed(2)} GB` : '—');
     const lines = [
-      '### VoiceStudio diagnostics',
+      '### Rich Future Voice diagnostics',
       '',
       `- **App version:** ${resolveAboutVersion(appVersion, info)}`,
       `- **Tauri runtime:** ${tauriVersion || (isTauri() ? '—' : 'web preview')}`,
@@ -241,12 +249,16 @@ export default function Settings() {
       `- **Data directory:** ${info?.data_dir || '—'}`,
       `- **Outputs directory:** ${info?.outputs_dir || '—'}`,
       `- **Crash log:** ${info?.crash_log_path || '—'}`,
-      `- **Update channel:** ${updateChannel}`,
-      `- **Update endpoint:** ${
-        updateChannel === 'preview'
-          ? 'https://github.com/debpalash/VoiceStudio/releases/download/preview/latest.json'
-          : 'https://github.com/debpalash/VoiceStudio/releases/latest/download/latest.json'
-      }`,
+      ...(IS_RICH_FUTURE_BRAND
+        ? []
+        : [
+            `- **Update channel:** ${updateChannel}`,
+            `- **Update endpoint:** ${
+              updateChannel === 'preview'
+                ? 'https://github.com/debpalash/VoiceStudio/releases/download/preview/latest.json'
+                : 'https://github.com/debpalash/VoiceStudio/releases/latest/download/latest.json'
+            }`,
+          ]),
       `- **User agent:** ${ua}`,
     ];
     try {

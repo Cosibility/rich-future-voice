@@ -248,7 +248,7 @@ export default function VoiceGallery({ clearSelectedProfile = NOOP }) {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-[1.1rem] font-semibold m-0 text-[var(--text-primary)]">
-              {t('gallery.title', { defaultValue: 'VoiceStudio Gallery' })}
+              {t('gallery.title', { defaultValue: 'Rich Future Voice Gallery' })}
             </h2>
             <p className="mt-[2px] mr-0 mb-0 ml-0 text-[0.72rem] text-[var(--text-secondary)]">
               {t('gallery.subtitle', {

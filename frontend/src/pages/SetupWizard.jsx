@@ -284,13 +284,13 @@ export default function SetupWizard({ onReady }) {
   const STEP_SUBTITLES = {
     system: t('setup.system_check_desc'),
     models: t('setup.install_models_desc'),
-    consent: t('consent.title', 'Help improve VoiceStudio?'),
+    consent: t('consent.title', 'Help improve Rich Future Voice?'),
     dictation: t('setup.try_dictation'),
   };
   const STEP_LABELS = {
     system: t('setup.system_check'),
     models: t('firstrun.stage_models', 'Models & engines'),
-    consent: t('consent.step_label', 'Improve VoiceStudio'),
+    consent: t('consent.step_label', 'Improve Rich Future Voice'),
     dictation: t('setup.try_dictation'),
   };
 
@@ -326,7 +326,7 @@ export default function SetupWizard({ onReady }) {
                   className="m-0 font-serif text-[clamp(1.6rem,3vw,2.2rem)] font-semibold leading-tight tracking-tight"
                   data-tauri-drag-region
                 >
-                  VoiceStudio
+                  Rich Future Voice
                 </h1>
                 {/* Same identity mark as the install splash footer. */}
                 <span
@@ -440,7 +440,7 @@ export default function SetupWizard({ onReady }) {
               className="fr-rise flex min-h-0 flex-1 flex-col gap-2.5"
               style={{ '--rise': 1 }}
             >
-              <SectionHead>{t('consent.title', 'Help improve VoiceStudio?')}</SectionHead>
+              <SectionHead>{t('consent.title', 'Help improve Rich Future Voice?')}</SectionHead>
               <div className="min-h-0 flex-1 overflow-y-auto pt-2">
                 <AnalyticsConsentCard onDone={() => setStep(step + 1)} />
               </div>

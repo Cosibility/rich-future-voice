@@ -13,7 +13,7 @@ import { useAppStore, FONT_OPTIONS, FONT_STACKS } from '../../store';
 import { SettingsSection, SettingRow, InfoHint, SettingsToggle } from './primitives';
 
 const THEMES = [
-  { id: 'gruvbox', label: 'Gruvbox', dot: '#d3869b' },
+  { id: 'gruvbox', label: 'Rich Future', dot: '#40e0b0' },
   { id: 'midnight', label: 'Midnight', dot: '#8b5cf6' },
   { id: 'nord', label: 'Nord', dot: '#88c0d0' },
   { id: 'solarized', label: 'Solarized', dot: '#268bd2' },

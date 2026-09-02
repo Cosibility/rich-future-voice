@@ -57,6 +57,7 @@ const SOURCES = [
 
 const LS_HEIGHT = 'omnivoice.logs.height';
 const LS_ACTIVE = 'omnivoice.logs.active';
+const IS_RICH_FUTURE_BRAND = import.meta.env.VITE_RICH_FUTURE_BRAND === '1';
 
 const MIN_H = 180;
 const MAX_H = 720;
@@ -447,7 +448,7 @@ export default function LogsFooter() {
     // + user agent — onto the clipboard so the user can paste into a
     // GitHub issue without hand-collecting files.
     const header = [
-      `VoiceStudio — diagnostic report`,
+      `Rich Future Voice — diagnostic report`,
       `When: ${new Date().toISOString()}`,
       `UA: ${navigator.userAgent}`,
       `Counts: backend err=${counts.backend.error}/warn=${counts.backend.warn}, ` +
@@ -559,14 +560,16 @@ export default function LogsFooter() {
               >
                 <Trash2 size={12} />
               </button>
-              <button
-                className={ICON_BTN_REPORT}
-                onClick={onReportIssue}
-                title={t('logs.report_issue')}
-                aria-label={t('logs.report_issue_aria')}
-              >
-                <Bug size={12} />
-              </button>
+              {!IS_RICH_FUTURE_BRAND && (
+                <button
+                  className={ICON_BTN_REPORT}
+                  onClick={onReportIssue}
+                  title={t('logs.report_issue')}
+                  aria-label={t('logs.report_issue_aria')}
+                >
+                  <Bug size={12} />
+                </button>
+              )}
               <button
                 className={ICON_BTN}
                 onClick={() => setCollapsed(true)}
@@ -577,7 +580,7 @@ export default function LogsFooter() {
               </button>
             </div>
           )}
-          {showWhatsNew && (
+          {!IS_RICH_FUTURE_BRAND && showWhatsNew && (
             <button
               type="button"
               data-testid="whats-new-pill"
@@ -600,45 +603,51 @@ export default function LogsFooter() {
               {t('update.whats_new', { defaultValue: "What's new" })}
             </button>
           )}
-          <button
-            type="button"
-            className={
-              'shrink-0 px-[6px] h-[var(--chrome-icon-btn)] rounded-[4px] bg-transparent border-0 cursor-pointer ' +
-              'text-[11px] [font-variant-numeric:tabular-nums] tracking-[0.02em] transition-[opacity,color] duration-150 ' +
-              'hover:opacity-100 hover:[color:var(--chrome-accent)] hover:underline ' +
-              (updateReady
-                ? 'relative opacity-100 font-semibold [color:var(--chrome-accent)]'
-                : 'opacity-55 [color:var(--chrome-fg)]')
-            }
-            onClick={() => useAppStore.getState().openSettingsTab?.('updates')}
-            title={
-              updateReady
-                ? t('logs.update_available', {
-                    version: updateVersion || '',
-                    defaultValue: 'Update available ({{version}}) — click to update',
-                  })
-                : t('logs.version_updates', { defaultValue: 'Check for updates' })
-            }
-            aria-label={
-              updateReady
-                ? t('logs.update_available_aria', {
-                    version: updateVersion || '',
-                    defaultValue: 'Update available ({{version}}) — open updates',
-                  })
-                : t('logs.version_updates_aria', {
-                    defaultValue: 'Open updates — app version {{v}}',
-                    v: APP_VERSION,
-                  })
-            }
-          >
-            v{APP_VERSION}
-            {updateReady && (
-              <span
-                className="inline-block w-[6px] h-[6px] ml-[5px] rounded-full align-middle [background:var(--chrome-accent)] [animation:version-dot-pulse_2s_ease-in-out_infinite]"
-                aria-hidden="true"
-              />
-            )}
-          </button>
+          {IS_RICH_FUTURE_BRAND ? (
+            <span className="shrink-0 px-[6px] text-[11px] opacity-55 [color:var(--chrome-fg)]">
+              v{APP_VERSION}
+            </span>
+          ) : (
+            <button
+              type="button"
+              className={
+                'shrink-0 px-[6px] h-[var(--chrome-icon-btn)] rounded-[4px] bg-transparent border-0 cursor-pointer ' +
+                'text-[11px] [font-variant-numeric:tabular-nums] tracking-[0.02em] transition-[opacity,color] duration-150 ' +
+                'hover:opacity-100 hover:[color:var(--chrome-accent)] hover:underline ' +
+                (updateReady
+                  ? 'relative opacity-100 font-semibold [color:var(--chrome-accent)]'
+                  : 'opacity-55 [color:var(--chrome-fg)]')
+              }
+              onClick={() => useAppStore.getState().openSettingsTab?.('updates')}
+              title={
+                updateReady
+                  ? t('logs.update_available', {
+                      version: updateVersion || '',
+                      defaultValue: 'Update available ({{version}}) — click to update',
+                    })
+                  : t('logs.version_updates', { defaultValue: 'Check for updates' })
+              }
+              aria-label={
+                updateReady
+                  ? t('logs.update_available_aria', {
+                      version: updateVersion || '',
+                      defaultValue: 'Update available ({{version}}) — open updates',
+                    })
+                  : t('logs.version_updates_aria', {
+                      defaultValue: 'Open updates — app version {{v}}',
+                      v: APP_VERSION,
+                    })
+              }
+            >
+              v{APP_VERSION}
+              {updateReady && (
+                <span
+                  className="inline-block w-[6px] h-[6px] ml-[5px] rounded-full align-middle [background:var(--chrome-accent)] [animation:version-dot-pulse_2s_ease-in-out_infinite]"
+                  aria-hidden="true"
+                />
+              )}
+            </button>
+          )}
           <ComputeQuickSettings />
           <EngineQuickSwitch shortcutTarget dropUp />
           <NetworkToggle />
@@ -653,7 +662,7 @@ export default function LogsFooter() {
           </button>
           <button
             type="button"
-            className={DISCORD_BTN}
+            className={`${DISCORD_BTN} ${IS_RICH_FUTURE_BRAND ? 'hidden' : ''}`}
             onClick={() => {
               import('../api/external').then((m) =>
                 m.openExternal('https://discord.gg/bzQavDfVV9'),
@@ -668,7 +677,7 @@ export default function LogsFooter() {
           </button>
           <button
             type="button"
-            className={DISCORD_BTN}
+            className={`${DISCORD_BTN} ${IS_RICH_FUTURE_BRAND ? 'hidden' : ''}`}
             onClick={() => useAppStore.getState().setMode?.('contact')}
             title={t('logs.contact', { defaultValue: 'Contact' })}
             aria-label={t('logs.contact_aria', { defaultValue: 'Open the contact page' })}
@@ -684,7 +693,8 @@ export default function LogsFooter() {
               'shrink-0 inline-flex items-center gap-[4px] px-[7px] h-[var(--chrome-icon-btn)] rounded-[4px] ' +
               'bg-transparent border-0 cursor-pointer text-[11px] tracking-[0.02em] ' +
               '[color:var(--chrome-fg-muted)] transition-[color,opacity] duration-150 ' +
-              'hover:[color:var(--chrome-accent)]'
+              'hover:[color:var(--chrome-accent)] ' +
+              (IS_RICH_FUTURE_BRAND ? 'hidden' : '')
             }
             onClick={() => useAppStore.getState().setMode?.('donate')}
             title={t('logs.sponsors', { defaultValue: 'Sponsors' })}
@@ -695,7 +705,9 @@ export default function LogsFooter() {
             <Gem size={12} aria-hidden="true" />
             {t('logs.sponsors', { defaultValue: 'Sponsors' })}
           </button>
-          <div className="relative inline-flex shrink-0 ml-[4px]">
+          <div
+            className={`relative inline-flex shrink-0 ml-[4px] ${IS_RICH_FUTURE_BRAND ? 'hidden' : ''}`}
+          >
             <button
               type="button"
               className={`${DONATE_BTN} ${donateMoment ? HEART_PULSE : HEART_GLOW}`}

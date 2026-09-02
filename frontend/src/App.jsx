@@ -116,6 +116,9 @@ import { checkForUpdate, fetchAppVersion } from './utils/updater';
 import { syncChannel } from './utils/channelControl';
 import i18n from './i18n';
 
+const IS_RICH_FUTURE_BRAND = import.meta.env.VITE_RICH_FUTURE_BRAND === '1';
+const UPSTREAM_ONLY_MODES = new Set(['donate', 'enterprise', 'contact']);
+
 function App() {
   // First-run bootstrap: Rust spawns uv sync in a background thread and
   // publishes progress via the `bootstrap_status` Tauri command. Hook below
@@ -208,6 +211,9 @@ function App() {
   }, [locale, theme, font]);
   const mode = useAppStore((s) => s.mode);
   const setMode = useAppStore((s) => s.setMode);
+  useEffect(() => {
+    if (IS_RICH_FUTURE_BRAND && UPSTREAM_ONLY_MODES.has(mode)) setMode('launchpad');
+  }, [mode, setMode]);
   // "Define voice" method inside the Voice (studio) workspace — replaces the
   // old clone/design navigation split (voice-studio-unification P4).
   const defineMethod = useAppStore((s) => s.defineMethod);
@@ -732,6 +738,7 @@ function App() {
     // so an update never interrupts in-flight work.
     fetchAppVersion().then((v) => useAppStore.getState().setAppVersion(v));
     syncChannel(useAppStore.getState());
+    if (IS_RICH_FUTURE_BRAND) return undefined;
     checkForUpdate(useAppStore.getState());
     // Re-check periodically so a long-running session still gets notified, not
     // only at boot. checkForUpdate no-ops while a download/restart is already

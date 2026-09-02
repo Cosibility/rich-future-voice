@@ -21,6 +21,9 @@ import { isTauri } from './native';
 import Row from './Row';
 import VoiceStudioMark from '../brand/VoiceStudioMark';
 
+const IS_RICH_FUTURE_BRAND = import.meta.env.VITE_RICH_FUTURE_BRAND === '1';
+const SOURCE_URL = import.meta.env.VITE_RICH_FUTURE_SOURCE_URL || REPO_URL;
+
 /**
  * Where a failing self-check can be fixed inside the app — diagnose check id
  * (backend/core/diagnose.py) → Settings category id. Checks without an in-app
@@ -87,7 +90,7 @@ export default function AboutTab({
         value={
           <span className="inline-flex items-center gap-[var(--space-2)]" translate="no">
             <VoiceStudioMark className="size-5 text-[var(--chrome-accent)]" />
-            VoiceStudio
+            Rich Future Voice
           </span>
         }
       />
@@ -112,7 +115,7 @@ export default function AboutTab({
       />
 
       <div className="settings-link-row mt-[var(--space-5)] flex flex-wrap gap-[var(--space-4)]">
-        {isTauri() && (
+        {isTauri() && !IS_RICH_FUTURE_BRAND && (
           <Button
             variant="primary"
             size="md"
@@ -148,20 +151,22 @@ export default function AboutTab({
           variant="subtle"
           size="md"
           leading={<ExternalLink size={12} />}
-          onClick={() => openExternal(REPO_URL)}
+          onClick={() => openExternal(SOURCE_URL)}
         >
-          {t('about.github')}
+          {t('about.source_code', { defaultValue: 'Source code' })}
         </Button>
-        <Button
-          variant="subtle"
-          size="md"
-          leading={<Building2 size={12} />}
-          onClick={() => {
-            useAppStore.getState().setMode?.('enterprise');
-          }}
-        >
-          {t('about.commercial_license')}
-        </Button>
+        {!IS_RICH_FUTURE_BRAND && (
+          <Button
+            variant="subtle"
+            size="md"
+            leading={<Building2 size={12} />}
+            onClick={() => {
+              useAppStore.getState().setMode?.('enterprise');
+            }}
+          >
+            {t('about.commercial_license')}
+          </Button>
+        )}
       </div>
       {selfCheck && (
         <div className="settings-selfcheck">
