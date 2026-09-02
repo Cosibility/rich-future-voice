@@ -10,7 +10,7 @@
 
 1. [Mở notebook Rich Future Voice trên Google Colab](https://colab.research.google.com/github/Cosibility/rich-future-voice/blob/main/notebooks/Rich_Future_Voice_Colab.ipynb).
 2. Chọn GPU T4 và bấm **Run** ở ô duy nhất.
-3. Chờ tab **Rich Future Voice** tự mở.
+3. Khi chạy xong, bấm **MỞ RICH FUTURE VOICE** hoặc dùng giao diện được nhúng ngay dưới ô code.
 
 Xem [hướng dẫn Colab và giấy phép](RICH_FUTURE.md).
 

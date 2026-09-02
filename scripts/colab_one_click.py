@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from html import escape
 import json
 import os
 from pathlib import Path
@@ -196,9 +197,30 @@ def launch_backend() -> dict:
 
 def open_colab_window() -> None:
     from google.colab import output
+    from IPython.display import HTML, display
 
-    output.serve_kernel_port_as_window(PORT)
-    print("\n✓ Rich Future Voice đã sẵn sàng. Nếu tab không tự mở, bấm liên kết phía trên.")
+    proxy_url = None
+    try:
+        proxy_url = output.eval_js(f"google.colab.kernel.proxyPort({PORT})")
+    except Exception as exc:
+        print(f"  Colab chưa tạo được URL riêng: {exc}")
+
+    if proxy_url:
+        safe_url = escape(str(proxy_url), quote=True)
+        display(
+            HTML(
+                '<div style="margin:16px 0;padding:18px;border:1px solid #14b8a6;'
+                'border-radius:12px;background:#071827">'
+                f'<a href="{safe_url}" target="_blank" rel="noopener noreferrer" '
+                'style="display:inline-block;padding:12px 20px;border-radius:8px;'
+                'background:#14b8a6;color:#03111d;font-weight:700;text-decoration:none">'
+                'MỞ RICH FUTURE VOICE ↗</a>'
+                f'<div style="margin-top:10px;color:#b8d8df">{safe_url}</div></div>'
+            )
+        )
+
+    print("\n✓ Rich Future Voice đã sẵn sàng. Bấm nút phía trên hoặc dùng ứng dụng bên dưới.")
+    output.serve_kernel_port_as_iframe(PORT, width="100%", height="900")
 
 
 def main() -> None:
