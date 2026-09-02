@@ -16,6 +16,7 @@ const STUDIO_PANEL =
   'flex flex-col min-h-0 bg-[var(--chrome-bg)] border border-transparent rounded-none py-[10px] px-[12px] max-[800px]:px-[10px] max-[600px]:px-[6px] max-[600px]:py-[8px]';
 
 export default function ScriptPanel({
+  simplified = false,
   t,
   defineMethod,
   text,
@@ -33,7 +34,9 @@ export default function ScriptPanel({
   insertTag,
 }) {
   return (
-    <div className="flex flex-col gap-[6px] flex-none min-h-0 relative z-[2]">
+    <div
+      className={`flex flex-col gap-[6px] flex-none min-h-0 relative z-[2] ${simplified ? 'order-2' : ''}`}
+    >
       {/* overflow-visible: the ⊕ Insert popover opens BELOW the textarea and
             must escape the panel's box instead of being clipped (#481). It
             used to open upward — but the script input sits at the very top of
@@ -86,24 +89,26 @@ export default function ScriptPanel({
           {/* Expression tokens live behind a popover — fourteen permanent
                 chips were renting the page's best pixels for an occasional
                 power feature (10x spec §1.4). */}
-          <button
-            type="button"
-            className={`absolute right-[8px] bottom-[30px] inline-flex items-center gap-[4px] px-2 py-1 text-[0.66rem] bg-[var(--chrome-bg)] border rounded-[var(--chrome-radius-pill)] cursor-pointer transition-[color,border-color] duration-[var(--dur-fast)] focus-visible:[outline:2px_solid_var(--chrome-accent)] focus-visible:[outline-offset:1px] ${
-              insertOpen
-                ? 'text-[var(--chrome-fg)] border-transparent'
-                : 'text-[var(--chrome-fg-muted)] border-transparent hover:text-[var(--chrome-fg)] hover:border-transparent'
-            }`}
-            onClick={() => setInsertOpen((o) => !o)}
-            aria-expanded={insertOpen}
-            aria-label={t('clone.insert_token', { defaultValue: 'Insert expression token' })}
-          >
-            <Plus size={11} /> {t('clone.insert', { defaultValue: 'Insert' })}{' '}
-            <ChevronDown size={10} />
-          </button>
-          {insertOpen && (
+          {!simplified && (
+            <button
+              type="button"
+              className={`absolute right-[8px] bottom-[30px] inline-flex items-center gap-[4px] px-2 py-1 text-[0.66rem] bg-[var(--chrome-bg)] border rounded-[var(--chrome-radius-pill)] cursor-pointer transition-[color,border-color] duration-[var(--dur-fast)] focus-visible:[outline:2px_solid_var(--chrome-accent)] focus-visible:[outline-offset:1px] ${
+                insertOpen
+                  ? 'text-[var(--chrome-fg)] border-transparent'
+                  : 'text-[var(--chrome-fg-muted)] border-transparent hover:text-[var(--chrome-fg)] hover:border-transparent'
+              }`}
+              onClick={() => setInsertOpen((o) => !o)}
+              aria-expanded={insertOpen}
+              aria-label={t('clone.insert_token', { defaultValue: 'Insert expression token' })}
+            >
+              <Plus size={11} /> {t('clone.insert', { defaultValue: 'Insert' })}{' '}
+              <ChevronDown size={10} />
+            </button>
+          )}
+          {!simplified && insertOpen && (
             <div className="fixed inset-0 z-[19]" onClick={() => setInsertOpen(false)} />
           )}
-          {insertOpen && (
+          {!simplified && insertOpen && (
             <div
               className="absolute right-[8px] top-[calc(100%+6px)] z-20 flex flex-wrap gap-1 max-w-[min(360px,calc(100vw-16px))] max-h-[min(280px,calc(100vh-120px))] overflow-y-auto overscroll-contain p-2 bg-[var(--chrome-bg)] border border-transparent rounded-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
               role="menu"

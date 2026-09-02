@@ -18,7 +18,7 @@ PORT = 3900
 HEALTH_URL = f"http://127.0.0.1:{PORT}/health"
 LOG_PATH = Path("/content/rich_future_voice_backend.log")
 DATA_DIR = Path(os.environ.get("RICH_FUTURE_DATA_DIR", "/content/rich_future_voice_data"))
-BUN = Path("/root/.bun/bin/bun")
+BUN_VERSION = "1.3.14"
 BUILD_STAMP = ROOT / "frontend" / "dist" / ".rich-future-colab-build"
 INSTALL_STAMP = Path("/content/.rich_future_voice_backend_ready")
 
@@ -54,27 +54,40 @@ def install_system_tools() -> None:
     run(["apt-get", "-qq", "install", "-y", "ffmpeg", "libsndfile1", "lsof"])
 
 
-def install_bun() -> None:
-    if not BUN.exists():
-        run(["bash", "-lc", "curl -fsSL https://bun.sh/install | bash"])
-    run([str(BUN), "--version"])
+def install_bun() -> Path:
+    bun_path = shutil.which("bun")
+    installed_version = ""
+    if bun_path:
+        installed_version = subprocess.check_output(
+            [bun_path, "--version"], text=True
+        ).strip()
+    if installed_version != BUN_VERSION:
+        npm = shutil.which("npm")
+        if not npm:
+            raise RuntimeError("Colab không có npm để cài Bun đã khóa phiên bản.")
+        run([npm, "install", "--global", f"bun@{BUN_VERSION}"])
+        bun_path = shutil.which("bun")
+    if not bun_path:
+        raise RuntimeError("Không tìm thấy Bun sau khi cài đặt.")
+    run([bun_path, "--version"])
+    return Path(bun_path)
 
 
-def build_branded_frontend() -> None:
+def build_branded_frontend(bun: Path) -> None:
     source_url = os.environ.get("RICH_FUTURE_SOURCE_URL", "").strip()
-    expected_stamp = f"revision={revision()}\nbrand=1\nsource={source_url}\n"
+    expected_stamp = f"revision={revision()}\nbrand=1\nui=clone-only\nsource={source_url}\n"
     if BUILD_STAMP.exists() and BUILD_STAMP.read_text(encoding="utf-8") == expected_stamp:
         print("  Giao diện Rich Future đã được dựng — bỏ qua.")
         return
 
     build_env = os.environ.copy()
-    build_env["PATH"] = f"{BUN.parent}{os.pathsep}{build_env.get('PATH', '')}"
+    build_env["PATH"] = f"{bun.parent}{os.pathsep}{build_env.get('PATH', '')}"
     build_env["VITE_RICH_FUTURE_BRAND"] = "1"
     if source_url:
         build_env["VITE_RICH_FUTURE_SOURCE_URL"] = source_url
 
-    run([str(BUN), "install", "--frozen-lockfile"], env=build_env)
-    run([str(BUN), "run", "--cwd", "frontend", "build"], env=build_env)
+    run([str(bun), "install", "--frozen-lockfile"], env=build_env)
+    run([str(bun), "run", "--cwd", "frontend", "build"], env=build_env)
     BUILD_STAMP.write_text(expected_stamp, encoding="utf-8")
 
 
@@ -130,8 +143,15 @@ def cache_default_model() -> None:
     if os.environ.get("RICH_FUTURE_SKIP_MODEL_DOWNLOAD") == "1":
         return
     from huggingface_hub import snapshot_download
+    from huggingface_hub.constants import HF_HUB_CACHE
 
-    path = snapshot_download("k2-fsa/OmniVoice")
+    sys.path.insert(0, str(ROOT / "backend"))
+    from services.hf_revisions import remember_revision, revision_for
+
+    repo_id = "k2-fsa/OmniVoice"
+    model_revision = revision_for(repo_id)
+    path = snapshot_download(repo_id, revision=model_revision)
+    remember_revision(repo_id, model_revision, str(HF_HUB_CACHE))
     print(f"  Model sẵn sàng tại {path}")
 
 
@@ -153,6 +173,7 @@ def launch_backend() -> dict:
             "OMNIVOICE_SERVER_MODE": "1",
             "OMNIVOICE_DATA_DIR": str(DATA_DIR),
             "OMNIVOICE_ANALYTICS_DISABLED": "1",
+            "RICH_FUTURE_LOCKDOWN": "1",
             "PYTHONUNBUFFERED": "1",
         }
     )
@@ -203,10 +224,10 @@ def main() -> None:
 
     stage("Chuẩn bị môi trường Colab")
     install_system_tools()
-    install_bun()
+    bun = install_bun()
 
     stage("Dựng giao diện Rich Future")
-    build_branded_frontend()
+    build_branded_frontend(bun)
 
     stage("Cài bộ máy giọng nói")
     install_backend()

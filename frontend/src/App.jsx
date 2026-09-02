@@ -53,6 +53,7 @@ import BackendStartFailureNotice from './components/BackendStartFailureNotice';
 import RemoteBackendRecovery from './components/RemoteBackendRecovery';
 import AnalyticsConsentBanner from './components/AnalyticsConsentBanner';
 import LanguageSwitchPrompt from './components/LanguageSwitchPrompt';
+import RichFutureCloneShell from './components/rich-future/RichFutureCloneShell';
 import { initAnalyticsFromConsent } from './utils/analytics';
 import BackendRestartBanner from './components/BackendRestartBanner';
 // RemoteAuthGate is mounted at the true outermost provider in main-app.jsx so
@@ -117,7 +118,6 @@ import { syncChannel } from './utils/channelControl';
 import i18n from './i18n';
 
 const IS_RICH_FUTURE_BRAND = import.meta.env.VITE_RICH_FUTURE_BRAND === '1';
-const UPSTREAM_ONLY_MODES = new Set(['donate', 'enterprise', 'contact']);
 
 function App() {
   // First-run bootstrap: Rust spawns uv sync in a background thread and
@@ -211,13 +211,15 @@ function App() {
   }, [locale, theme, font]);
   const mode = useAppStore((s) => s.mode);
   const setMode = useAppStore((s) => s.setMode);
-  useEffect(() => {
-    if (IS_RICH_FUTURE_BRAND && UPSTREAM_ONLY_MODES.has(mode)) setMode('launchpad');
-  }, [mode, setMode]);
   // "Define voice" method inside the Voice (studio) workspace — replaces the
   // old clone/design navigation split (voice-studio-unification P4).
   const defineMethod = useAppStore((s) => s.defineMethod);
   const setDefineMethod = useAppStore((s) => s.setDefineMethod);
+  useEffect(() => {
+    if (!IS_RICH_FUTURE_BRAND) return;
+    if (mode !== 'studio') setMode('studio');
+    if (defineMethod !== 'audio') setDefineMethod('audio');
+  }, [defineMethod, mode, setDefineMethod, setMode]);
   // Breadcrumb every view change — mode names are a closed set, so this is
   // privacy-safe by construction (see utils/breadcrumbs.js).
   useEffect(() => {
@@ -617,7 +619,6 @@ function App() {
   const isSidebarProjectsCollapsed = useAppStore((s) => s.isSidebarProjectsCollapsed);
   const setIsSidebarProjectsCollapsed = useAppStore((s) => s.setIsSidebarProjectsCollapsed);
   const isSidebarCollapsed = useAppStore((s) => s.isSidebarCollapsed);
-  const setIsSidebarCollapsed = useAppStore((s) => s.setIsSidebarCollapsed);
 
   // First-run gate — `/setup/status` reports whether required HF models are
   // on disk. If not, we render <SetupWizard> in place of the main studio so
@@ -1258,6 +1259,69 @@ function App() {
     }
   };
 
+  const cloneWorkspaceProps = {
+    textAreaRef,
+    text,
+    setText,
+    language,
+    setLanguage,
+    steps,
+    setSteps,
+    cfg,
+    setCfg,
+    speed,
+    setSpeed,
+    tShift,
+    setTShift,
+    posTemp,
+    setPosTemp,
+    classTemp,
+    setClassTemp,
+    layerPenalty,
+    setLayerPenalty,
+    duration,
+    setDuration,
+    denoise,
+    setDenoise,
+    postprocess,
+    setPostprocess,
+    showOverrides,
+    setShowOverrides,
+    profiles,
+    selectedProfile,
+    setSelectedProfile,
+    refAudio,
+    refText,
+    setRefText,
+    instruct,
+    setInstruct,
+    profileName,
+    setProfileName,
+    showSaveProfile,
+    setShowSaveProfile,
+    isRecording,
+    isCleaning,
+    recordingTime,
+    audioInputs,
+    selectedAudioInputId,
+    setSelectedAudioInputId,
+    channelMode,
+    setChannelMode,
+    inputLevelStore,
+    vdStates,
+    setVdStates,
+    isGenerating,
+    generationTime,
+    applyPreset,
+    insertTag,
+    handleSaveProfile,
+    handleSaveDesignProfile,
+    handleGenerate,
+    startRecording,
+    stopRecording,
+    ingestRefAudio,
+  };
+
   // Install-plan screen outranks everything — both on a true first run and
   // when explicitly requested via `--setup`. Without this, a live backend
   // answering /setup/status would route straight to the model wizard and the
@@ -1293,7 +1357,7 @@ function App() {
       </div>
     );
   }
-  if (!uiScaleConfigured && backendReady) {
+  if (!IS_RICH_FUTURE_BRAND && !uiScaleConfigured && backendReady) {
     return (
       <div className="app-wizard-wrap" style={{ '--ui-scale': effectiveUiScale }}>
         <div data-tauri-drag-region className="app-wizard-dragstrip" />
@@ -1356,6 +1420,39 @@ function App() {
       <div className="app-bootstrap-scale" style={{ '--ui-scale': effectiveUiScale }}>
         <BootstrapSplash stage={bootstrapStage} message={bootstrapMessage} />
       </div>
+    );
+  }
+
+  if (IS_RICH_FUTURE_BRAND) {
+    return (
+      <RichFutureCloneShell modelStatus={modelStatus} audioPlayer={<GlobalAudioPlayer />}>
+        {pendingTrimFile && (
+          <ErrorBoundary name="audio-trimmer">
+            <Suspense fallback={<LazyFallback />}>
+              <AudioTrimmer
+                file={pendingTrimFile}
+                maxSeconds={CLONE_MAX_SECONDS}
+                onCancel={() => setPendingTrimFile(null)}
+                onConfirm={(trimmed) => {
+                  setPendingTrimFile(null);
+                  setRefAudio(trimmed);
+                  setSelectedProfile(null);
+                  toast.success(i18n.t('app.trimmed_loaded'));
+                }}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+        <Toaster position="top-center" />
+        <BackendCrashNotice />
+        <BackendStartFailureNotice />
+        <BackendRestartBanner />
+        <ErrorBoundary name="rich-future-clone">
+          <Suspense fallback={<LazyFallback />}>
+            <CloneDesignTab {...cloneWorkspaceProps} simplified />
+          </Suspense>
+        </ErrorBoundary>
+      </RichFutureCloneShell>
     );
   }
 
@@ -1702,72 +1799,7 @@ function App() {
             <div className="studio-with-history__main">
               <ErrorBoundary name="clone-design">
                 <Suspense fallback={<LazyFallback />}>
-                  <CloneDesignTab
-                    textAreaRef={textAreaRef}
-                    text={text}
-                    setText={setText}
-                    language={language}
-                    setLanguage={setLanguage}
-                    steps={steps}
-                    setSteps={setSteps}
-                    cfg={cfg}
-                    setCfg={setCfg}
-                    speed={speed}
-                    setSpeed={setSpeed}
-                    tShift={tShift}
-                    setTShift={setTShift}
-                    posTemp={posTemp}
-                    setPosTemp={setPosTemp}
-                    classTemp={classTemp}
-                    setClassTemp={setClassTemp}
-                    layerPenalty={layerPenalty}
-                    setLayerPenalty={setLayerPenalty}
-                    duration={duration}
-                    setDuration={setDuration}
-                    denoise={denoise}
-                    setDenoise={setDenoise}
-                    postprocess={postprocess}
-                    setPostprocess={setPostprocess}
-                    showOverrides={showOverrides}
-                    setShowOverrides={setShowOverrides}
-                    isSidebarCollapsed={isSidebarCollapsed}
-                    setIsSidebarCollapsed={setIsSidebarCollapsed}
-                    profiles={profiles}
-                    selectedProfile={selectedProfile}
-                    setSelectedProfile={setSelectedProfile}
-                    refAudio={refAudio}
-                    refText={refText}
-                    setRefText={setRefText}
-                    instruct={instruct}
-                    setInstruct={setInstruct}
-                    profileName={profileName}
-                    setProfileName={setProfileName}
-                    showSaveProfile={showSaveProfile}
-                    setShowSaveProfile={setShowSaveProfile}
-                    isRecording={isRecording}
-                    isCleaning={isCleaning}
-                    recordingTime={recordingTime}
-                    audioInputs={audioInputs}
-                    selectedAudioInputId={selectedAudioInputId}
-                    setSelectedAudioInputId={setSelectedAudioInputId}
-                    channelMode={channelMode}
-                    setChannelMode={setChannelMode}
-                    inputLevelStore={inputLevelStore}
-                    vdStates={vdStates}
-                    setVdStates={setVdStates}
-                    isGenerating={isGenerating}
-                    generationTime={generationTime}
-                    applyPreset={applyPreset}
-                    insertTag={insertTag}
-                    handleSelectProfile={handleSelectProfile}
-                    handleDeleteProfile={handleDeleteProfile}
-                    handleSaveProfile={handleSaveProfile}
-                    handleSaveDesignProfile={handleSaveDesignProfile}
-                    handleGenerate={handleGenerate}
-                    startRecording={startRecording}
-                    stopRecording={stopRecording}
-                    ingestRefAudio={ingestRefAudio}
-                  />
+                  <CloneDesignTab {...cloneWorkspaceProps} />
                 </Suspense>
               </ErrorBoundary>
             </div>

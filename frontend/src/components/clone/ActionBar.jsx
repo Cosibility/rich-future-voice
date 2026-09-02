@@ -14,6 +14,7 @@ import { POPULAR_LANGS } from '../../utils/constants';
 import { stopActivePlayback } from '../../utils/playback';
 
 export default function ActionBar({
+  simplified = false,
   t,
   showOverrides,
   setShowOverrides,
@@ -53,7 +54,7 @@ export default function ActionBar({
 }) {
   return (
     <div className="studio-action-bar overflow-visible relative z-[10]">
-      {showOverrides && (
+      {!simplified && showOverrides && (
         <div className="override-content">
           <div className="grid [grid-template-columns:repeat(auto-fit,minmax(120px,1fr))] gap-[6px] max-[500px]:grid-cols-2">
             <div>
@@ -198,31 +199,35 @@ export default function ActionBar({
             onChange={setLanguage}
           />
         </div>
-        <label
-          className="flex items-center gap-[6px] flex-[1_1_160px] min-w-[120px] [&_input]:flex-1 [&_input]:min-w-[60px]"
-          title={t('clone.steps')}
-        >
-          <SlidersHorizontal size={12} className="label-icon" />
-          <input
-            type="range"
-            min="8"
-            max="64"
-            value={steps}
-            onChange={(e) => setSteps(Number(e.target.value))}
-          />
-          <span className="text-[0.65rem] bg-black/35 px-[5px] py-px rounded-[3px] [border:1px_solid_rgba(255,255,255,0.04)] [font-variant-numeric:tabular-nums]">
-            {steps}
-          </span>
-        </label>
-        <button
-          type="button"
-          className="inline-flex items-center gap-[4px] px-[10px] py-[4px] text-[0.7rem] text-[var(--chrome-fg-muted)] bg-transparent border border-transparent rounded-[var(--chrome-radius-pill)] cursor-pointer whitespace-nowrap flex-none transition-[color,border-color] duration-[var(--dur-fast)] hover:text-[var(--chrome-fg)] hover:border-transparent focus-visible:[outline:2px_solid_var(--chrome-accent)] focus-visible:[outline-offset:1px]"
-          onClick={() => setShowOverrides(!showOverrides)}
-          aria-expanded={showOverrides}
-        >
-          <Settings2 size={13} /> {t('clone.production_overrides')}
-          {showOverrides ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
-        </button>
+        {!simplified && (
+          <label
+            className="flex items-center gap-[6px] flex-[1_1_160px] min-w-[120px] [&_input]:flex-1 [&_input]:min-w-[60px]"
+            title={t('clone.steps')}
+          >
+            <SlidersHorizontal size={12} className="label-icon" />
+            <input
+              type="range"
+              min="8"
+              max="64"
+              value={steps}
+              onChange={(e) => setSteps(Number(e.target.value))}
+            />
+            <span className="text-[0.65rem] bg-black/35 px-[5px] py-px rounded-[3px] [border:1px_solid_rgba(255,255,255,0.04)] [font-variant-numeric:tabular-nums]">
+              {steps}
+            </span>
+          </label>
+        )}
+        {!simplified && (
+          <button
+            type="button"
+            className="inline-flex items-center gap-[4px] px-[10px] py-[4px] text-[0.7rem] text-[var(--chrome-fg-muted)] bg-transparent border border-transparent rounded-[var(--chrome-radius-pill)] cursor-pointer whitespace-nowrap flex-none transition-[color,border-color] duration-[var(--dur-fast)] hover:text-[var(--chrome-fg)] hover:border-transparent focus-visible:[outline:2px_solid_var(--chrome-accent)] focus-visible:[outline-offset:1px]"
+            onClick={() => setShowOverrides(!showOverrides)}
+            aria-expanded={showOverrides}
+          >
+            <Settings2 size={13} /> {t('clone.production_overrides')}
+            {showOverrides ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
+          </button>
+        )}
       </div>
 
       {showHearDemo ? (

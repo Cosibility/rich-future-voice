@@ -10,6 +10,7 @@ const EMPTY_LEVEL_STORE = {
 };
 
 export default function AudioMethodPanel({
+  simplified = false,
   t,
   selectedProfile,
   setSelectedProfile,
@@ -103,39 +104,41 @@ export default function AudioMethodPanel({
               onStop={stopRecording}
             />
           </div>
-          <div className="mt-2 grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-2 max-[520px]:grid-cols-1">
-            <label className="min-w-0 text-[length:var(--text-xs)] text-fg-muted">
-              <span className="mb-1 block">{t('recording.input_device')}</span>
-              <Select
-                size="sm"
-                className="w-full"
-                value={selectedAudioInputId}
-                onChange={(event) => setSelectedAudioInputId?.(event.target.value)}
-                disabled={isRecording || isCleaning}
-              >
-                <option value="">{t('recording.default_input')}</option>
-                {audioInputs.map((device, index) => (
-                  <option key={device.deviceId || `input-${index}`} value={device.deviceId}>
-                    {device.label || t('recording.microphone_number', { number: index + 1 })}
-                  </option>
-                ))}
-              </Select>
-            </label>
-            <label className="min-w-0 text-[length:var(--text-xs)] text-fg-muted">
-              <span className="mb-1 block">{t('recording.channels')}</span>
-              <Select
-                size="sm"
-                className="w-full"
-                value={channelMode}
-                onChange={(event) => setChannelMode?.(event.target.value)}
-                disabled={isRecording || isCleaning}
-              >
-                <option value="auto">{t('recording.channels_auto')}</option>
-                <option value="mono">{t('recording.channels_mono')}</option>
-                <option value="stereo">{t('recording.channels_stereo')}</option>
-              </Select>
-            </label>
-          </div>
+          {!simplified && (
+            <div className="mt-2 grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-2 max-[520px]:grid-cols-1">
+              <label className="min-w-0 text-[length:var(--text-xs)] text-fg-muted">
+                <span className="mb-1 block">{t('recording.input_device')}</span>
+                <Select
+                  size="sm"
+                  className="w-full"
+                  value={selectedAudioInputId}
+                  onChange={(event) => setSelectedAudioInputId?.(event.target.value)}
+                  disabled={isRecording || isCleaning}
+                >
+                  <option value="">{t('recording.default_input')}</option>
+                  {audioInputs.map((device, index) => (
+                    <option key={device.deviceId || `input-${index}`} value={device.deviceId}>
+                      {device.label || t('recording.microphone_number', { number: index + 1 })}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+              <label className="min-w-0 text-[length:var(--text-xs)] text-fg-muted">
+                <span className="mb-1 block">{t('recording.channels')}</span>
+                <Select
+                  size="sm"
+                  className="w-full"
+                  value={channelMode}
+                  onChange={(event) => setChannelMode?.(event.target.value)}
+                  disabled={isRecording || isCleaning}
+                >
+                  <option value="auto">{t('recording.channels_auto')}</option>
+                  <option value="mono">{t('recording.channels_mono')}</option>
+                  <option value="stereo">{t('recording.channels_stereo')}</option>
+                </Select>
+              </label>
+            </div>
+          )}
           {isRecording && (
             <div
               className="mt-2 flex items-center gap-2 text-[length:var(--text-xs)]"
@@ -191,7 +194,9 @@ export default function AudioMethodPanel({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-[6px] max-[700px]:grid-cols-1 mt-[6px]">
+      <div
+        className={`grid gap-[6px] mt-[6px] ${simplified ? 'grid-cols-1' : 'grid-cols-2 max-[700px]:grid-cols-1'}`}
+      >
         <div>
           <div className="label-row">{t('clone.transcript')}</div>
           <input
@@ -202,16 +207,18 @@ export default function AudioMethodPanel({
             placeholder={t('clone.optional')}
           />
         </div>
-        <div>
-          <div className="label-row">{t('clone.style')}</div>
-          <input
-            type="text"
-            className="input-base"
-            value={instruct}
-            onChange={(e) => setInstruct(e.target.value)}
-            placeholder={t('clone.style_placeholder')}
-          />
-        </div>
+        {!simplified && (
+          <div>
+            <div className="label-row">{t('clone.style')}</div>
+            <input
+              type="text"
+              className="input-base"
+              value={instruct}
+              onChange={(e) => setInstruct(e.target.value)}
+              placeholder={t('clone.style_placeholder')}
+            />
+          </div>
+        )}
       </div>
 
       {/* #526: voice-design seed — show + pin + re-roll so tweaks can
@@ -263,7 +270,7 @@ export default function AudioMethodPanel({
       )}
 
       {/* Save as profile */}
-      {refAudio && !selectedProfile && (
+      {!simplified && refAudio && !selectedProfile && (
         <div className="mt-[var(--space-4)]">
           {!showSaveProfile ? (
             <Button

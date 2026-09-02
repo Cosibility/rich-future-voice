@@ -738,6 +738,24 @@ html[data-window='widget'] #root > * {
   overflow: hidden;
   transition: grid-template-columns var(--transition-smooth);
 }
+
+/* Rich Future's Colab build is a single-purpose voice-cloning surface. It has
+   its own three-row shell so upstream workspace chrome cannot reserve hidden
+   columns or push the generation action below an embedded notebook viewport. */
+.rich-future-clone-app {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(20, 184, 166, 0.12), transparent 42%),
+    var(--color-bg);
+}
+
+.rich-future-clone-app > .global-audio-dock {
+  grid-row: 3;
+}
 /* Older WebKitGTK (Linux), where the App.jsx probe found `zoom` is a layout
    no-op → html[data-zoom-layout=off]: the calc(100vw/scale) box can't be
    magnified back, so it leaves a black band and clips the bottom Generate/

@@ -10,6 +10,7 @@ the frozen-backend fallback mirror it for their toolchains.
 
 **Highlights**
 
+- Rich Future Colab now opens directly into a simplified, single-purpose voice-cloning workflow.
 - Show estimated and measured model, dependency, cache, and temporary disk costs in the engine catalogue (#1718)
 - Preview builds now stay newer than Stable even when automatic post-release version bumps are disabled (#1762)
 - CosyVoice setup guidance now separates downloaded model files from the runtime that makes the engine available.
@@ -17,6 +18,8 @@ the frozen-backend fallback mirror it for their toolchains.
 - Hardsub video export gains an opt-in karaoke word-highlight caption style (#1764) — thanks @mvanhorn!
 
 ### Changed
+
+- Rich Future Colab hides unrelated workspaces and advanced generation controls, pins its default voice model and Bun runtime, and enables restrictive browser security headers.
 
 ### Added
 
@@ -26,6 +29,7 @@ the frozen-backend fallback mirror it for their toolchains.
 
 ### Docs
 
+- The Rich Future guide now requires one private Colab runtime per user and forbids sharing a common app URL.
 - Local gigastt is now documented as a supported OpenAI-compatible ASR endpoint, with loopback privacy distinguished from remote servers (#1736) — thanks @ekhodzitsky!
 - The CosyVoice guide now states that packaged builds have no one-click runtime installer and records the exact readiness checks exposed by [Discussion 1631](https://github.com/debpalash/VoiceStudio/discussions/1631).
 - A production private-API guide now covers pinned containers, root credentials, network isolation, streaming proxies, health checks, upgrades, and benchmark evidence (#1720)

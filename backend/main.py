@@ -1554,6 +1554,53 @@ class BackendMarkerMiddleware:
         return await self.app(scope, receive, send_with_marker)
 
 
+class ColabSecurityHeadersMiddleware:
+    """Defense-in-depth headers for the single-origin Rich Future Colab UI.
+
+    Opt-in because the upstream desktop/web product supports integrations and
+    embedding targets that need a broader policy. The Colab launcher enables
+    this only for its constrained same-origin voice-cloning surface.
+    """
+
+    _CSP = "; ".join(
+        (
+            "default-src 'self'",
+            "base-uri 'self'",
+            "object-src 'none'",
+            "form-action 'self'",
+            "script-src 'self'",
+            "style-src 'self' 'unsafe-inline'",
+            "font-src 'self' data:",
+            "img-src 'self' data: blob:",
+            "media-src 'self' data: blob:",
+            "connect-src 'self' ws: wss:",
+            "frame-ancestors 'self' https://colab.research.google.com",
+        )
+    )
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+
+        async def send_with_security_headers(message):
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers.setdefault("content-security-policy", self._CSP)
+                headers.setdefault("x-content-type-options", "nosniff")
+                headers.setdefault("referrer-policy", "no-referrer")
+                headers.setdefault("cache-control", "no-store")
+                headers.setdefault(
+                    "permissions-policy",
+                    "camera=(), geolocation=(), microphone=(self)",
+                )
+            await send(message)
+
+        return await self.app(scope, receive, send_with_security_headers)
+
+
 def _backend_marker_value() -> str:
     # ImportError only: the marker's JOB is to be present, so a frozen build
     # that cannot import the version module still answers "yes, a backend".
@@ -1698,6 +1745,12 @@ app.add_middleware(
 # preflights and gate-generated 401s retain the browser contract. The marker's
 # absence lets a client conclude that the responder is not VoiceStudio (#1385).
 app.add_middleware(BackendMarkerMiddleware)
+
+# The branded Colab launcher is a deliberately narrow deployment target. Keep
+# this opt-in so the desktop app and documented third-party integrations retain
+# their existing embedding and network behavior.
+if os.environ.get("RICH_FUTURE_LOCKDOWN") == "1":
+    app.add_middleware(ColabSecurityHeadersMiddleware)
 
 # Register canonical audio MIME types before any StaticFiles mount.
 # Python's `mimetypes.guess_type()` returns `audio/x-wav` for `.wav` and

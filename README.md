@@ -2,7 +2,7 @@
   <img src="frontend/public/favicon.svg" alt="Rich Future Voice" width="120" height="120" />
   <h1>Rich Future Voice</h1>
   <h3>Voice Studio của Rich Future chạy bằng GPU Google Colab</h3>
-  <p>Nhân bản giọng nói · thiết kế giọng · lồng tiếng · 646 ngôn ngữ</p>
+  <p>Nhân bản giọng nói tinh gọn · 646 ngôn ngữ</p>
   <a href="https://colab.research.google.com/github/Cosibility/rich-future-voice/blob/main/notebooks/Rich_Future_Voice_Colab.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Mở bằng Google Colab" /></a>
 </div>
 
@@ -11,6 +11,8 @@
 1. [Mở notebook Rich Future Voice trên Google Colab](https://colab.research.google.com/github/Cosibility/rich-future-voice/blob/main/notebooks/Rich_Future_Voice_Colab.ipynb).
 2. Chọn GPU T4 và bấm **Run** ở ô duy nhất.
 3. Khi chạy xong, bấm **MỞ RICH FUTURE VOICE** hoặc dùng giao diện được nhúng ngay dưới ô code.
+
+Mỗi người dùng phải tự chạy notebook trong tài khoản Colab riêng; không chia sẻ URL ứng dụng được tạo sau khi chạy.
 
 Xem [hướng dẫn Colab và giấy phép](RICH_FUTURE.md).
 

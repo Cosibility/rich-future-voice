@@ -17,6 +17,7 @@ import EngineQuickSwitch from '../components/EngineQuickSwitch';
 
 export default function CloneDesignTab(props) {
   const {
+    simplified = false,
     textAreaRef,
     text,
     setText,
@@ -85,6 +86,12 @@ export default function CloneDesignTab(props) {
   // can preset it (voice-studio-unification P4).
   const defineMethod = useAppStore((s) => s.defineMethod);
   const setDefineMethod = useAppStore((s) => s.setDefineMethod);
+
+  useEffect(() => {
+    if (!simplified) return;
+    if (defineMethod !== 'audio') setDefineMethod('audio');
+    if (selectedProfile) setSelectedProfile(null);
+  }, [defineMethod, selectedProfile, setDefineMethod, setSelectedProfile, simplified]);
   // Voice-design seed (#526): show the seed the last synth used, let the user
   // pin it ("keep this seed") so tweaks stay on the same base timbre, or roll
   // a new one.
@@ -299,6 +306,7 @@ export default function CloneDesignTab(props) {
       <div className="flex-1 flex flex-col gap-[6px] min-h-0 overflow-y-auto">
         {/* ═══ SCRIPT — what should it say ═══ */}
         <ScriptPanel
+          simplified={simplified}
           t={t}
           defineMethod={defineMethod}
           text={text}
@@ -317,35 +325,40 @@ export default function CloneDesignTab(props) {
         />
 
         {/* ═══ VOICE — who says it ═══ */}
-        <div className="flex flex-col gap-[6px] flex-none min-h-0 relative z-[1]">
+        <div
+          className={`flex flex-col gap-[6px] flex-none min-h-0 relative z-[1] ${simplified ? 'order-1' : ''}`}
+        >
           <div className="flex flex-col min-h-0 overflow-auto bg-[var(--chrome-bg)] border border-transparent rounded-none py-[10px] px-[12px] max-[800px]:px-[10px] max-[600px]:px-[6px] max-[600px]:py-[8px]">
             <div className="label-row justify-between">
               <span className="label-row mb-0">
                 <Volume2 className="label-icon" size={14} />{' '}
                 {t('clone.voice_kicker', { defaultValue: 'Voice' })}
               </span>
-              <div className="flex items-center gap-[6px]">
-                <EngineQuickSwitch />
-                <Segmented
-                  size="sm"
-                  value={defineMethod}
-                  onChange={setDefineMethod}
-                  items={[
-                    {
-                      value: 'audio',
-                      label: t('clone.define_from_audio', { defaultValue: 'From audio' }),
-                    },
-                    {
-                      value: 'design',
-                      label: t('clone.define_by_design', { defaultValue: 'By design' }),
-                    },
-                  ]}
-                />
-              </div>
+              {!simplified && (
+                <div className="flex items-center gap-[6px]">
+                  <EngineQuickSwitch />
+                  <Segmented
+                    size="sm"
+                    value={defineMethod}
+                    onChange={setDefineMethod}
+                    items={[
+                      {
+                        value: 'audio',
+                        label: t('clone.define_from_audio', { defaultValue: 'From audio' }),
+                      },
+                      {
+                        value: 'design',
+                        label: t('clone.define_by_design', { defaultValue: 'By design' }),
+                      },
+                    ]}
+                  />
+                </div>
+              )}
             </div>
 
             {defineMethod === 'audio' ? (
               <AudioMethodPanel
+                simplified={simplified}
                 t={t}
                 selectedProfile={selectedProfile}
                 setSelectedProfile={setSelectedProfile}
@@ -410,6 +423,7 @@ export default function CloneDesignTab(props) {
 
       {/* ═══ ACTION BAR — pinned to the column bottom ═══ */}
       <ActionBar
+        simplified={simplified}
         t={t}
         showOverrides={showOverrides}
         setShowOverrides={setShowOverrides}
