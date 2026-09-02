@@ -4,11 +4,9 @@ Rich Future Voice là bản giao diện riêng chạy trên Google Colab, phát 
 
 ## Chạy trên Google Colab
 
-1. Đưa toàn bộ repository này lên một repository GitHub của bạn, ví dụ `rich-future-voice`.
-2. Mở `notebooks/Rich_Future_Voice_Colab.ipynb` trên Google Colab.
-3. Trong ô duy nhất **Khởi động Rich Future Voice**, thay `YOUR_GITHUB_USERNAME` bằng tài khoản GitHub của bạn.
-4. Chọn `Runtime → Change runtime type → T4 GPU`.
-5. Bấm **Run** một lần. Ô này tự cài môi trường, dựng giao diện, tải model, khởi động backend và mở Rich Future Voice trong tab mới.
+1. [Mở notebook Rich Future Voice trên Google Colab](https://colab.research.google.com/github/Cosibility/rich-future-voice/blob/main/notebooks/Rich_Future_Voice_Colab.ipynb).
+2. Chọn `Runtime → Change runtime type → T4 GPU`.
+3. Bấm **Run** một lần. Ô này tự clone `Cosibility/rich-future-voice`, cài môi trường, dựng giao diện, tải model, khởi động backend và mở Rich Future Voice trong tab mới.
 
 Lần chạy đầu thường mất 5–10 phút để cài thư viện; model giọng nói cần tải thêm vài GB. Dữ liệu trong `/content` sẽ mất khi phiên Colab kết thúc.
 
