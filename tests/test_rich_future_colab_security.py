@@ -1,8 +1,9 @@
 """Security contract for the public Rich Future Colab notebook."""
 
-from pathlib import Path
+import json
 import os
 import sys
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -19,6 +20,19 @@ def test_colab_launcher_pins_network_executables_and_model_revision():
     assert 'BUN_VERSION = "1.3.14"' in source
     assert "snapshot_download(repo_id, revision=model_revision)" in source
     assert '"RICH_FUTURE_LOCKDOWN": "1"' in source
+
+
+def test_public_notebook_pins_the_reviewed_application_commit():
+    notebook = json.loads(
+        (ROOT / "notebooks" / "Rich_Future_Voice_Colab.ipynb").read_text(
+            encoding="utf-8"
+        )
+    )
+    source = "".join(notebook["cells"][0]["source"])
+
+    assert "9d1185f4e4a9bf8cb47413b267a5e210ce7c5f56" in source
+    assert '"pull"' not in source
+    assert "source_revision != SOURCE_REVISION" in source
 
 
 def test_colab_security_headers_are_applied_without_replacing_stricter_values():
