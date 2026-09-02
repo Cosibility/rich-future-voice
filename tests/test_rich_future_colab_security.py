@@ -36,7 +36,7 @@ def test_public_notebook_pins_the_reviewed_application_commit():
     )
     source = "".join(notebook["cells"][0]["source"])
 
-    assert "ee8d17abc6bf27b2985429817fd47289872d1ac9" in source
+    assert "d2331266f77ccb413858f17dae2b65f51f6e0937" in source
     assert '"pull"' not in source
     assert "source_revision != SOURCE_REVISION" in source
     assert "serve_kernel_port_as_iframe" not in source
