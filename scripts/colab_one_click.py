@@ -16,9 +16,12 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 PORT = 3900
 HEALTH_URL = f"http://127.0.0.1:{PORT}/health"
+WARMUP_URL = f"http://127.0.0.1:{PORT}/setup/warmup"
 LOG_PATH = Path("/content/rich_future_voice_backend.log")
 DATA_DIR = Path(os.environ.get("RICH_FUTURE_DATA_DIR", "/content/rich_future_voice_data"))
 BUN_VERSION = "1.3.14"
+UV_VERSION = "0.11.7"
+VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
 BUILD_STAMP = ROOT / "frontend" / "dist" / ".rich-future-colab-build"
 INSTALL_STAMP = Path("/content/.rich_future_voice_backend_ready")
 
@@ -92,32 +95,43 @@ def build_branded_frontend(bun: Path) -> None:
 
 
 def install_backend() -> None:
-    expected_stamp = f"revision={revision()}\npython={sys.version}\n"
-    if INSTALL_STAMP.exists() and INSTALL_STAMP.read_text(encoding="utf-8") == expected_stamp:
+    expected_stamp = (
+        f"revision={revision()}\npython={sys.version}\nuv={UV_VERSION}\nlock=uv.lock\n"
+    )
+    if (
+        VENV_PYTHON.exists()
+        and INSTALL_STAMP.exists()
+        and INSTALL_STAMP.read_text(encoding="utf-8") == expected_stamp
+    ):
         print("  Backend đã được cài — bỏ qua.")
         return
 
-    if not shutil.which("uv"):
-        run([sys.executable, "-m", "pip", "install", "-q", "uv"])
+    uv_path = shutil.which("uv")
+    installed_uv = ""
+    if uv_path:
+        installed_uv = subprocess.check_output([uv_path, "--version"], text=True).split()[1]
+    if installed_uv != UV_VERSION:
+        run([sys.executable, "-m", "pip", "install", "-q", f"uv=={UV_VERSION}"])
 
+    # uv.lock is the single Python dependency contract. --frozen refuses to
+    # resolve or silently rewrite it; --no-dev keeps the public Colab runtime
+    # lean while still installing every production dependency at its exact
+    # locked version and verified artifact hash.
     run(
         [
             "uv",
-            "pip",
-            "install",
-            "--system",
-            "--no-cache",
-            "--constraint",
-            "deploy/torch-constraints.txt",
-            ".",
+            "sync",
+            "--frozen",
+            "--no-dev",
         ]
     )
 
-    (ROOT / ".venv").mkdir(exist_ok=True)
-    run([sys.executable, str(ROOT / "scripts" / "setup.py")])
+    if not VENV_PYTHON.exists():
+        raise RuntimeError("uv sync không tạo được môi trường Python đã khóa.")
+    run([str(VENV_PYTHON), str(ROOT / "scripts" / "setup.py")])
     run(
         [
-            sys.executable,
+            str(VENV_PYTHON),
             "-c",
             "import torch, torchaudio, fastapi, uvicorn, transformers; "
             "from omnivoice.models.omnivoice import OmniVoice; "
@@ -142,17 +156,31 @@ def load_hugging_face_token() -> None:
 def cache_default_model() -> None:
     if os.environ.get("RICH_FUTURE_SKIP_MODEL_DOWNLOAD") == "1":
         return
-    from huggingface_hub import snapshot_download
-    from huggingface_hub.constants import HF_HUB_CACHE
+    code = (
+        "import sys; "
+        f"sys.path.insert(0, {str(ROOT / 'backend')!r}); "
+        "from huggingface_hub import snapshot_download; "
+        "from huggingface_hub.constants import HF_HUB_CACHE; "
+        "from services.hf_revisions import remember_revision, revision_for; "
+        "repo_id='k2-fsa/OmniVoice'; "
+        "model_revision=revision_for(repo_id); "
+        "path=snapshot_download(repo_id, revision=model_revision); "
+        "remember_revision(repo_id, model_revision, str(HF_HUB_CACHE)); "
+        "print(f'  Model sẵn sàng tại {path}')"
+    )
+    run([str(VENV_PYTHON), "-c", code])
 
-    sys.path.insert(0, str(ROOT / "backend"))
-    from services.hf_revisions import remember_revision, revision_for
 
-    repo_id = "k2-fsa/OmniVoice"
-    model_revision = revision_for(repo_id)
-    path = snapshot_download(repo_id, revision=model_revision)
-    remember_revision(repo_id, model_revision, str(HF_HUB_CACHE))
-    print(f"  Model sẵn sàng tại {path}")
+def start_model_warmup() -> None:
+    """Load the model in the background while the user prepares their script."""
+    try:
+        request = urllib.request.Request(WARMUP_URL, data=b"", method="POST")
+        with urllib.request.urlopen(request, timeout=10) as response:
+            result = json.load(response)
+        print(f"  Làm nóng model: {result.get('status', 'started')}")
+    except Exception as exc:
+        # Warmup is an optimization only; generation can still cold-load.
+        print(f"  Không thể làm nóng model nền ({exc}); ứng dụng vẫn dùng được.")
 
 
 def launch_backend() -> dict:
@@ -181,7 +209,7 @@ def launch_backend() -> dict:
     log = LOG_PATH.open("ab")
     process = subprocess.Popen(
         [
-            sys.executable,
+            str(VENV_PYTHON),
             "-m",
             "uvicorn",
             "main:app",
@@ -238,6 +266,7 @@ def main() -> None:
 
     stage("Khởi động Rich Future Voice")
     info = launch_backend()
+    start_model_warmup()
     print(f"  Backend: {info}")
     print("\n✓ Backend Rich Future Voice đã sẵn sàng trên cổng 3900.")
 

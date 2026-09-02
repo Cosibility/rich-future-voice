@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useAppStore } from '../store';
-import { generateSpeech, TtsGenerationBusyError } from '../api/generate';
+import { audioUrl, generateSpeech, TtsGenerationBusyError } from '../api/generate';
 import { pickDesignSeed } from '../utils/seed';
 import { playBlobAudio, playPing } from '../utils/media';
 import {
@@ -17,6 +17,7 @@ import { toast } from 'react-hot-toast';
 import { toastErrorWithReport } from '../utils/errorToast';
 import { modelNotDownloadedPayload, toastModelNotDownloaded } from '../utils/modelNotDownloaded';
 import { addBreadcrumb } from '../utils/breadcrumbs';
+import { browserDownload } from '../utils/download';
 import i18next from 'i18next';
 const t = i18next.t.bind(i18next);
 
@@ -66,6 +67,8 @@ export default function useTTS({ selectedProfile, setSelectedProfile, loadHistor
   const [pendingTrimFile, setPendingTrimFile] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationTime, setGenerationTime] = useState(0);
+  const [lastOutput, setLastOutput] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const timerRef = useRef(null);
   const textAreaRef = useRef(null);
 
@@ -297,7 +300,7 @@ export default function useTTS({ selectedProfile, setSelectedProfile, loadHistor
       }
       if (wantsStreaming && !remoteTarget) {
         try {
-          await streamGenerateSpeech(formData, {
+          const meta = await streamGenerateSpeech(formData, {
             signal: ac.signal,
             label: t('player.streaming_preview'),
             finalLabel: t('player.generated_audio'),
@@ -308,6 +311,7 @@ export default function useTTS({ selectedProfile, setSelectedProfile, loadHistor
                 announceDroppedText(ev.count, (ev.text || []).join(' | '));
             },
           });
+          if (meta?.audio_path) setLastOutput(meta.audio_path);
           streamed = true;
         } catch (err) {
           if (!(err instanceof StreamingPreviewError)) throw err;
@@ -333,6 +337,7 @@ export default function useTTS({ selectedProfile, setSelectedProfile, loadHistor
 
       if (!streamed) {
         const response = await generateSpeech(formData, { signal: ac.signal });
+        const audioPath = response.headers.get('X-Audio-Path');
         const reader = response.body.getReader();
         const chunks = [];
         let receivedLength = 0;
@@ -351,6 +356,7 @@ export default function useTTS({ selectedProfile, setSelectedProfile, loadHistor
         }
 
         const blob = new Blob(chunks, { type: 'audio/wav' });
+        if (audioPath) setLastOutput(audioPath);
         // #1032: honor the Settings → Appearance "Auto-play preview" pref here
         // too. #667 added the toggle ("play the output as soon as a render
         // finishes") but only wired the WaveformPlayer preview sites — the main
@@ -409,6 +415,19 @@ export default function useTTS({ selectedProfile, setSelectedProfile, loadHistor
     setSidebarTab,
   ]);
 
+  const handleDownload = useCallback(async () => {
+    if (!lastOutput || isDownloading) return;
+    setIsDownloading(true);
+    try {
+      const outputName = lastOutput.split('/').pop() || 'voice.wav';
+      await browserDownload(audioUrl(lastOutput), `rich-future-${outputName}`);
+    } catch (err) {
+      toast.error(t('clone.download_failed', { message: err?.message || '' }));
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [isDownloading, lastOutput]);
+
   return {
     refAudio,
     setRefAudio,
@@ -416,10 +435,13 @@ export default function useTTS({ selectedProfile, setSelectedProfile, loadHistor
     setPendingTrimFile,
     isGenerating,
     generationTime,
+    lastOutput,
+    isDownloading,
     textAreaRef,
     ingestRefAudio,
     insertTag,
     applyPreset,
     handleGenerate,
+    handleDownload,
   };
 }

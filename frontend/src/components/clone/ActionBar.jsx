@@ -6,12 +6,19 @@ import {
   ChevronDown,
   Play,
   Square,
+  Download,
 } from 'lucide-react';
 import { Button, Progress } from '../../ui';
 import SearchableSelect from '../SearchableSelect';
 import ALL_LANGUAGES from '../../languages.json';
 import { POPULAR_LANGS } from '../../utils/constants';
 import { stopActivePlayback } from '../../utils/playback';
+
+const RICH_FUTURE_QUALITY_PRESETS = [
+  { steps: 8, labelKey: 'clone.quality_fast' },
+  { steps: 16, labelKey: 'clone.quality_balanced' },
+  { steps: 32, labelKey: 'clone.quality_studio' },
+];
 
 export default function ActionBar({
   simplified = false,
@@ -49,9 +56,17 @@ export default function ActionBar({
   outputPlaying,
   isGenerating,
   handleGenerate,
+  lastOutput,
+  isDownloading,
+  handleDownload,
   generationTime,
   wasGeneratingRef,
 }) {
+  const reportedProgress = /\((\d+)%\)/.exec(String(generationTime));
+  const progressValue = reportedProgress
+    ? Number(reportedProgress[1])
+    : Math.min((Number.parseFloat(generationTime) / Math.max(8, steps / 2)) * 100, 95);
+
   return (
     <div className="studio-action-bar overflow-visible relative z-[10]">
       {!simplified && showOverrides && (
@@ -188,7 +203,7 @@ export default function ActionBar({
       )}
 
       {/* Controls row: language · steps · overrides disclosure */}
-      <div className="flex items-center gap-[16px] min-w-0">
+      <div className="flex items-center gap-[16px] min-w-0 max-[640px]:flex-wrap">
         <div className="flex items-center gap-[6px] flex-[1_1_220px] min-w-[140px] [&>:last-child]:flex-1 [&>:last-child]:min-w-0">
           <Globe size={12} className="label-icon" />
           <SearchableSelect
@@ -216,6 +231,33 @@ export default function ActionBar({
               {steps}
             </span>
           </label>
+        )}
+        {simplified && (
+          <div
+            className="flex flex-[1_1_280px] min-w-[240px] items-center gap-[6px]"
+            role="group"
+            aria-label={t('clone.quality')}
+          >
+            <SlidersHorizontal size={12} className="label-icon flex-none" />
+            <span className="text-[0.68rem] text-fg-muted whitespace-nowrap">
+              {t('clone.quality')}
+            </span>
+            <div className="grid grid-cols-3 gap-[4px] flex-1">
+              {RICH_FUTURE_QUALITY_PRESETS.map((preset) => (
+                <Button
+                  key={preset.steps}
+                  variant="preset"
+                  size="sm"
+                  active={steps === preset.steps}
+                  onClick={() => setSteps(preset.steps)}
+                  title={`${preset.steps} ${t('clone.steps')}`}
+                  className="min-w-0 px-[8px]"
+                >
+                  {t(preset.labelKey)}
+                </Button>
+              ))}
+            </div>
+          </div>
         )}
         {!simplified && (
           <button
@@ -280,9 +322,21 @@ export default function ActionBar({
             : t('clone.synthesize')}
         </Button>
       )}
+      {simplified && lastOutput && !isGenerating && (
+        <Button
+          variant="subtle"
+          block
+          loading={isDownloading}
+          onClick={handleDownload}
+          leading={!isDownloading && <Download size={14} />}
+          className="mt-[6px]"
+        >
+          {t('clone.download_audio')}
+        </Button>
+      )}
       {isGenerating && (
         <Progress
-          value={Math.min((generationTime / 8) * 100, 95)}
+          value={Number.isFinite(progressValue) ? progressValue : 0}
           tone="brand"
           size="sm"
           className="mt-[6px]"

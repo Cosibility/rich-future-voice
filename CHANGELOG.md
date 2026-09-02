@@ -11,6 +11,7 @@ the frozen-backend fallback mirror it for their toolchains.
 **Highlights**
 
 - Rich Future Colab now opens directly into a simplified, single-purpose voice-cloning workflow.
+- Rich Future Colab now prewarms its model, offers Fast/Balanced/Studio quality presets, and downloads completed WAV files directly.
 - Show estimated and measured model, dependency, cache, and temporary disk costs in the engine catalogue (#1718)
 - Preview builds now stay newer than Stable even when automatic post-release version bumps are disabled (#1762)
 - CosyVoice setup guidance now separates downloaded model files from the runtime that makes the engine available.
@@ -20,6 +21,7 @@ the frozen-backend fallback mirror it for their toolchains.
 ### Changed
 
 - Rich Future Colab hides unrelated workspaces and advanced generation controls, pins its default voice model and Bun runtime, and enables restrictive browser security headers.
+- Rich Future Colab now installs the exact production Python graph from `uv.lock`, pins uv itself, and overrides vulnerable frontend transitive dependencies with audited patch releases.
 
 ### Added
 

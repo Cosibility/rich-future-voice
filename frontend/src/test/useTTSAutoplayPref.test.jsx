@@ -124,9 +124,13 @@ describe('useTTS delivery path vs the chosen GPU', () => {
   });
 
   it('streams progressively when the work runs on this machine', async () => {
-    await runGenerate();
+    const { result } = renderHook(() => useTTS(hookProps()));
+    await act(async () => {
+      await result.current.handleGenerate();
+    });
     expect(streamGenerateSpeech).toHaveBeenCalledTimes(1);
     expect(generateSpeech).not.toHaveBeenCalled();
+    expect(result.current.lastOutput).toBe('x.wav');
   });
 
   it('takes the classic path when the resolved target is a worker', async () => {

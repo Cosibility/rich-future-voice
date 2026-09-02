@@ -70,11 +70,14 @@ export default function CloneDesignTab(props) {
     setVdStates,
     isGenerating,
     generationTime,
+    lastOutput,
+    isDownloading,
     applyPreset,
     insertTag,
     handleSaveProfile,
     handleSaveDesignProfile,
     handleGenerate,
+    handleDownload,
     startRecording,
     stopRecording,
     ingestRefAudio,
@@ -458,6 +461,9 @@ export default function CloneDesignTab(props) {
         outputPlaying={outputPlaying}
         isGenerating={isGenerating}
         handleGenerate={handleGenerate}
+        lastOutput={lastOutput}
+        isDownloading={isDownloading}
+        handleDownload={handleDownload}
         generationTime={generationTime}
         wasGeneratingRef={wasGeneratingRef}
       />

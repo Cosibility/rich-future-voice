@@ -41,5 +41,11 @@
     "turbo": "^2.10.9",
     "typescript": "^6.0.3",
     "wait-on": "^9.1.0"
+  },
+  "overrides": {
+    "@babel/core": "7.29.7",
+    "brace-expansion": "5.0.9",
+    "browserslist": "4.28.8",
+    "undici": "7.29.0"
   }
 }

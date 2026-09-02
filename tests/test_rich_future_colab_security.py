@@ -18,8 +18,14 @@ def test_colab_launcher_pins_network_executables_and_model_revision():
 
     assert "curl -fsSL https://bun.sh/install | bash" not in source
     assert 'BUN_VERSION = "1.3.14"' in source
+    assert 'UV_VERSION = "0.11.7"' in source
+    assert '"sync",' in source
+    assert '"--frozen",' in source
+    assert '"--no-dev",' in source
+    assert '"--system",' not in source
     assert "snapshot_download(repo_id, revision=model_revision)" in source
     assert '"RICH_FUTURE_LOCKDOWN": "1"' in source
+    assert 'WARMUP_URL = f"http://127.0.0.1:{PORT}/setup/warmup"' in source
 
 
 def test_public_notebook_pins_the_reviewed_application_commit():
@@ -33,6 +39,17 @@ def test_public_notebook_pins_the_reviewed_application_commit():
     assert "9d1185f4e4a9bf8cb47413b267a5e210ce7c5f56" in source
     assert '"pull"' not in source
     assert "source_revision != SOURCE_REVISION" in source
+
+
+def test_frontend_advisory_overrides_are_pinned_to_patched_releases():
+    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+
+    assert package["overrides"] == {
+        "@babel/core": "7.29.7",
+        "brace-expansion": "5.0.9",
+        "browserslist": "4.28.8",
+        "undici": "7.29.0",
+    }
 
 
 def test_colab_security_headers_are_applied_without_replacing_stricter_values():
