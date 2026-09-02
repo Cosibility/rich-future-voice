@@ -18,6 +18,7 @@ const labels = {
   'clone.steps': 'Steps',
   'clone.synthesize': 'Synthesize Audio',
   'clone.download_audio': 'Download audio',
+  'clone.speed': 'Speed',
 };
 
 function renderBar(overrides = {}) {
@@ -26,6 +27,8 @@ function renderBar(overrides = {}) {
     t: (key) => labels[key] || key,
     language: 'Auto',
     setLanguage: vi.fn(),
+    speed: 1,
+    setSpeed: vi.fn(),
     steps: 16,
     setSteps: vi.fn(),
     showHearDemo: false,
@@ -56,7 +59,21 @@ describe('Rich Future simplified action bar', () => {
 
   it('shows a direct download action after generation finishes', () => {
     const props = renderBar({ lastOutput: 'abc123.wav' });
-    fireEvent.click(screen.getByRole('button', { name: 'Download audio' }));
-    expect(props.handleDownload).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole('button', { name: 'Download audio WAV' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Download audio MP3' }));
+    expect(props.handleDownload).toHaveBeenNthCalledWith(1, 'wav');
+    expect(props.handleDownload).toHaveBeenNthCalledWith(2, 'mp3');
+  });
+
+  it('offers safe speaking-speed presets in simplified mode', () => {
+    const props = renderBar();
+
+    fireEvent.click(screen.getByRole('button', { name: '0.85×' }));
+    fireEvent.click(screen.getByRole('button', { name: '1×' }));
+    fireEvent.click(screen.getByRole('button', { name: '1.15×' }));
+
+    expect(props.setSpeed).toHaveBeenNthCalledWith(1, 0.85);
+    expect(props.setSpeed).toHaveBeenNthCalledWith(2, 1);
+    expect(props.setSpeed).toHaveBeenNthCalledWith(3, 1.15);
   });
 });

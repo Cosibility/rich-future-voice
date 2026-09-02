@@ -54,6 +54,7 @@ import RemoteBackendRecovery from './components/RemoteBackendRecovery';
 import AnalyticsConsentBanner from './components/AnalyticsConsentBanner';
 import LanguageSwitchPrompt from './components/LanguageSwitchPrompt';
 import RichFutureCloneShell from './components/rich-future/RichFutureCloneShell';
+import RichFutureToolkit from './components/rich-future/RichFutureToolkit';
 import { initAnalyticsFromConsent } from './utils/analytics';
 import BackendRestartBanner from './components/BackendRestartBanner';
 // RemoteAuthGate is mounted at the true outermost provider in main-app.jsx so
@@ -1431,7 +1432,18 @@ function App() {
 
   if (IS_RICH_FUTURE_BRAND) {
     return (
-      <RichFutureCloneShell modelStatus={modelStatus} audioPlayer={<GlobalAudioPlayer />}>
+      <RichFutureCloneShell
+        modelStatus={modelStatus}
+        audioPlayer={<GlobalAudioPlayer />}
+        toolkit={
+          <RichFutureToolkit
+            history={history}
+            language={language}
+            playTake={playTakeAsOutput}
+            deleteTake={deleteHistory}
+          />
+        }
+      >
         {pendingTrimFile && (
           <ErrorBoundary name="audio-trimmer">
             <Suspense fallback={<LazyFallback />}>

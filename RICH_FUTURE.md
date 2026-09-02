@@ -16,7 +16,9 @@ Lần chạy đầu thường mất 5–10 phút để cài thư viện; model g
 1. Tải lên hoặc thu một đoạn giọng mẫu sạch dài khoảng 5–15 giây.
 2. Nhập nội dung cần đọc và chọn ngôn ngữ.
 3. Chọn chất lượng: **Nhanh** (8 bước, dùng để thử), **Cân bằng** (16 bước, mặc định) hoặc **Studio** (32 bước, ưu tiên chất lượng).
-4. Bấm **Tổng hợp âm thanh**. Sau khi hoàn tất, bấm **Tải giọng nói xuống** để lưu file WAV gốc.
+4. Chọn tốc độ **0.85× / 1× / 1.15×** rồi bấm **Tổng hợp âm thanh**.
+5. Sau khi hoàn tất, tải file WAV gốc hoặc MP3 192 kbps. Năm bản gần nhất có thể được nghe lại, tải xuống hoặc xóa trong bảng **Lịch sử**.
+6. Để sửa tên riêng hoặc thương hiệu bị đọc sai, thêm cặp **từ gốc → cách đọc** trong bảng **Từ điển phát âm**. Mục sửa được áp dụng cho ngôn ngữ đang chọn.
 
 Launcher tự làm nóng model ở chế độ nền ngay khi ứng dụng sẵn sàng, vì vậy thời gian nạp model đầu tiên thường diễn ra trong lúc người dùng chuẩn bị giọng mẫu và kịch bản. Thời gian dựng thực tế vẫn phụ thuộc độ dài văn bản, chất lượng đã chọn và GPU Colab được cấp.
 
@@ -46,7 +48,7 @@ Trước mỗi đợt phát hành công khai, hãy khóa notebook vào một com
 - Phong cách: nền xanh đen, điểm nhấn xanh ngọc và xanh cyan
 - Logo: tín hiệu giọng nói đang tăng trưởng, gợi liên tưởng đến “future”
 - Giao diện Colab chỉ giữ luồng tải/thu giọng mẫu, nhập nội dung, chọn ngôn ngữ và tạo âm thanh
-- Giao diện có ba preset chất lượng và nút tải WAV ngay sau khi tạo
+- Giao diện có ba preset chất lượng, ba preset tốc độ, năm bản gần nhất, sửa phát âm và tải WAV/MP3
 - Giao diện mặc định: tiếng Việt theo ngôn ngữ trình duyệt, vẫn hỗ trợ các ngôn ngữ có sẵn của dự án gốc
 - Chế độ Colab ẩn các liên kết cập nhật, báo lỗi, Discord, tài trợ và giấy phép thương mại của dự án gốc
 - Mục Giới thiệu chỉ để lại liên kết **Mã nguồn** trỏ về repository Rich Future, nhằm đáp ứng nghĩa vụ AGPL mà không đưa thương hiệu gốc vào luồng sử dụng chính

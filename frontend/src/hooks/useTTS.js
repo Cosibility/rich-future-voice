@@ -17,7 +17,9 @@ import { toast } from 'react-hot-toast';
 import { toastErrorWithReport } from '../utils/errorToast';
 import { modelNotDownloadedPayload, toastModelNotDownloaded } from '../utils/modelNotDownloaded';
 import { addBreadcrumb } from '../utils/breadcrumbs';
-import { browserDownload } from '../utils/download';
+import { browserDownload, downloadBlob } from '../utils/download';
+import { encodeAudio } from '../api/stories';
+import { apiFetch } from '../api/client';
 import i18next from 'i18next';
 const t = i18next.t.bind(i18next);
 
@@ -415,18 +417,29 @@ export default function useTTS({ selectedProfile, setSelectedProfile, loadHistor
     setSidebarTab,
   ]);
 
-  const handleDownload = useCallback(async () => {
-    if (!lastOutput || isDownloading) return;
-    setIsDownloading(true);
-    try {
-      const outputName = lastOutput.split('/').pop() || 'voice.wav';
-      await browserDownload(audioUrl(lastOutput), `rich-future-${outputName}`);
-    } catch (err) {
-      toast.error(t('clone.download_failed', { message: err?.message || '' }));
-    } finally {
-      setIsDownloading(false);
-    }
-  }, [isDownloading, lastOutput]);
+  const handleDownload = useCallback(
+    async (format = 'wav') => {
+      if (!lastOutput || isDownloading) return;
+      setIsDownloading(true);
+      try {
+        const outputName = lastOutput.split('/').pop() || 'voice.wav';
+        if (format === 'mp3') {
+          const response = await apiFetch(audioUrl(lastOutput));
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const encoded = await encodeAudio(await response.blob(), 'mp3', '192k');
+          const baseName = outputName.replace(/\.[^.]+$/, '');
+          downloadBlob(encoded, `rich-future-${baseName}.mp3`);
+          return;
+        }
+        await browserDownload(audioUrl(lastOutput), `rich-future-${outputName}`);
+      } catch (err) {
+        toast.error(t('clone.download_failed', { message: err?.message || '' }));
+      } finally {
+        setIsDownloading(false);
+      }
+    },
+    [isDownloading, lastOutput],
+  );
 
   return {
     refAudio,

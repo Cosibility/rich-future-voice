@@ -10,6 +10,29 @@ import {
 } from '../utils/streamingTts';
 import { generateSpeech } from '../api/generate';
 import toast from 'react-hot-toast';
+import { encodeAudio } from '../api/stories';
+import { downloadBlob } from '../utils/download';
+
+vi.mock('../api/client', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    apiFetch: vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      blob: async () => new Blob(['wav'], { type: 'audio/wav' }),
+    }),
+  };
+});
+
+vi.mock('../api/stories', () => ({
+  encodeAudio: vi.fn().mockResolvedValue(new Blob(['mp3'], { type: 'audio/mpeg' })),
+}));
+
+vi.mock('../utils/download', () => ({
+  browserDownload: vi.fn().mockResolvedValue('voice.wav'),
+  downloadBlob: vi.fn(),
+}));
 
 // #1032: Settings → Appearance "Auto-play preview" ("play the output as soon
 // as a render finishes", #666/#667) only gated the WaveformPlayer preview
@@ -158,5 +181,23 @@ describe('useTTS delivery path vs the chosen GPU', () => {
     expect(notices).toHaveLength(1);
     expect(notices[0]).toMatch(/gpu2/);
     expect(notices[0]).not.toMatch(/streamingOffRemote/); // a real string, not the key
+  });
+});
+
+describe('useTTS Rich Future downloads', () => {
+  it('transcodes the generated WAV to a downloadable 192 kbps MP3', async () => {
+    vi.mocked(supportsStreamingPreview).mockReturnValue(true);
+    vi.mocked(resolveRemoteTtsTarget).mockResolvedValue(null);
+    const { result } = renderHook(() => useTTS(hookProps()));
+
+    await act(async () => {
+      await result.current.handleGenerate();
+    });
+    await act(async () => {
+      await result.current.handleDownload('mp3');
+    });
+
+    expect(encodeAudio).toHaveBeenCalledWith(expect.any(Blob), 'mp3', '192k');
+    expect(downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'rich-future-x.mp3');
   });
 });

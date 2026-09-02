@@ -4,11 +4,11 @@ import VoiceStudioMark from '../brand/VoiceStudioMark';
 
 const STATUS_TONE = {
   ready: 'bg-[var(--color-success)]',
-  loading: 'bg-[var(--color-warning)]',
+  loading: 'bg-[var(--color-warning,#fabd2f)]',
   idle: 'bg-[var(--chrome-fg-dim)]',
 };
 
-export default function RichFutureCloneShell({ modelStatus, children, audioPlayer }) {
+export default function RichFutureCloneShell({ modelStatus, children, audioPlayer, toolkit }) {
   const { t } = useTranslation();
   const status = modelStatus === 'ready' || modelStatus === 'loading' ? modelStatus : 'idle';
 
@@ -33,7 +33,9 @@ export default function RichFutureCloneShell({ modelStatus, children, audioPlaye
       </header>
 
       <main className="min-h-0 overflow-y-auto bg-[var(--color-bg)] px-3 py-4 sm:px-5">
-        <div className="mx-auto flex min-h-full w-full max-w-[900px] flex-col overflow-hidden rounded-2xl border border-[var(--chrome-border)] bg-[var(--chrome-bg)] shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
+        <div
+          className={`mx-auto flex min-h-full w-full flex-col overflow-hidden rounded-2xl border border-[var(--chrome-border)] bg-[var(--chrome-bg)] shadow-[0_18px_55px_rgba(0,0,0,0.22)] ${toolkit ? 'max-w-[1180px]' : 'max-w-[900px]'}`}
+        >
           <div className="grid grid-cols-3 border-b border-[var(--chrome-border)] bg-[color-mix(in_srgb,var(--chrome-accent)_5%,var(--chrome-bg))] text-center text-[11px] font-medium text-[var(--chrome-fg-muted)]">
             {[t('clone.voice_kicker'), t('clone.script'), t('clone.synthesize')].map(
               (label, index) => (
@@ -46,7 +48,12 @@ export default function RichFutureCloneShell({ modelStatus, children, audioPlaye
               ),
             )}
           </div>
-          <div className="flex min-h-0 flex-1 flex-col p-2 sm:p-3">{children}</div>
+          <div
+            className={`min-h-0 flex-1 ${toolkit ? 'grid grid-cols-[minmax(0,1fr)_300px] max-[860px]:grid-cols-1' : 'flex flex-col'}`}
+          >
+            <div className="flex min-h-0 flex-col p-2 sm:p-3">{children}</div>
+            {toolkit}
+          </div>
         </div>
       </main>
 

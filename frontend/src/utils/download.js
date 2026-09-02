@@ -58,3 +58,18 @@ export async function browserDownload(url, fallbackName, deps = {}) {
   urlApi.revokeObjectURL(localUrl);
   return finalName;
 }
+
+/** Download an in-memory Blob through the browser without navigating away. */
+export function downloadBlob(blob, filename, deps = {}) {
+  const doc = deps.document ?? globalThis.document;
+  const urlApi = deps.url ?? globalThis.URL;
+  const localUrl = urlApi.createObjectURL(blob);
+  const anchor = doc.createElement('a');
+  anchor.href = localUrl;
+  anchor.download = filename || 'download';
+  doc.body.appendChild(anchor);
+  anchor.click();
+  doc.body.removeChild(anchor);
+  urlApi.revokeObjectURL(localUrl);
+  return anchor.download;
+}

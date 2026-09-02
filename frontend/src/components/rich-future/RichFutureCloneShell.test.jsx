@@ -5,7 +5,11 @@ import RichFutureCloneShell from './RichFutureCloneShell';
 describe('RichFutureCloneShell', () => {
   it('shows only the three-step cloning workflow and runtime status', () => {
     render(
-      <RichFutureCloneShell modelStatus="ready" audioPlayer={<div>player</div>}>
+      <RichFutureCloneShell
+        modelStatus="ready"
+        audioPlayer={<div>player</div>}
+        toolkit={<div>recent takes and pronunciation</div>}
+      >
         <div>clone form</div>
       </RichFutureCloneShell>,
     );
@@ -16,6 +20,7 @@ describe('RichFutureCloneShell', () => {
     expect(screen.getByText('Synthesize Audio')).toBeInTheDocument();
     expect(screen.getByText('Ready')).toBeInTheDocument();
     expect(screen.getByText('clone form')).toBeInTheDocument();
+    expect(screen.getByText('recent takes and pronunciation')).toBeInTheDocument();
     expect(screen.getByText('player')).toBeInTheDocument();
   });
 });

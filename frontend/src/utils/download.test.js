@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { parseFilenameFromContentDisposition, browserDownload } from './download';
+import { parseFilenameFromContentDisposition, browserDownload, downloadBlob } from './download';
 
 describe('parseFilenameFromContentDisposition', () => {
   it('returns null for missing/empty headers', () => {
@@ -68,5 +68,18 @@ describe('browserDownload', () => {
     await expect(browserDownload('http://x/audio/foo.wav', 'foo.wav', deps)).resolves.toBe(
       'foo.wav',
     );
+  });
+});
+
+describe('downloadBlob', () => {
+  it('downloads an encoded in-memory result without navigating the app', () => {
+    const anchor = { href: '', download: '', click: vi.fn() };
+    const body = { appendChild: vi.fn(), removeChild: vi.fn() };
+    const document = { createElement: vi.fn(() => anchor), body };
+    const url = { createObjectURL: vi.fn(() => 'blob:encoded'), revokeObjectURL: vi.fn() };
+
+    expect(downloadBlob(new Blob(['mp3']), 'voice.mp3', { document, url })).toBe('voice.mp3');
+    expect(anchor.click).toHaveBeenCalledOnce();
+    expect(url.revokeObjectURL).toHaveBeenCalledWith('blob:encoded');
   });
 });

@@ -14,7 +14,7 @@
 
 Mỗi người dùng phải tự chạy notebook trong tài khoản Colab riêng; không chia sẻ URL ứng dụng được tạo sau khi chạy.
 
-Giao diện clone tinh gọn có ba mức chất lượng **Nhanh / Cân bằng / Studio**, tự làm nóng model nền và cho tải file WAV ngay sau khi tạo. Python chạy từ `uv.lock` ở chế độ frozen; frontend chạy từ `bun.lock` và đã khóa các bản vá dependency được audit.
+Giao diện clone tinh gọn có ba mức chất lượng **Nhanh / Cân bằng / Studio**, ba mức tốc độ đọc, năm bản tạo gần nhất, từ điển sửa phát âm và tải WAV hoặc MP3. Model được làm nóng ở nền. Python chạy từ `uv.lock` ở chế độ frozen; frontend chạy từ `bun.lock` và đã khóa các bản vá dependency được audit.
 
 Xem [hướng dẫn Colab và giấy phép](RICH_FUTURE.md).
 

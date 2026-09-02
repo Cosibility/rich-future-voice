@@ -20,6 +20,8 @@ const RICH_FUTURE_QUALITY_PRESETS = [
   { steps: 32, labelKey: 'clone.quality_studio' },
 ];
 
+const RICH_FUTURE_SPEED_PRESETS = [0.85, 1, 1.15];
+
 export default function ActionBar({
   simplified = false,
   t,
@@ -259,6 +261,31 @@ export default function ActionBar({
             </div>
           </div>
         )}
+        {simplified && (
+          <div
+            className="flex flex-[1_1_220px] min-w-[210px] items-center gap-[6px]"
+            role="group"
+            aria-label={t('clone.speed')}
+          >
+            <span className="text-[0.68rem] text-fg-muted whitespace-nowrap">
+              {t('clone.speed')}
+            </span>
+            <div className="grid grid-cols-3 gap-[4px] flex-1">
+              {RICH_FUTURE_SPEED_PRESETS.map((preset) => (
+                <Button
+                  key={preset}
+                  variant="preset"
+                  size="sm"
+                  active={speed === preset}
+                  onClick={() => setSpeed(preset)}
+                  className="min-w-0 px-[8px]"
+                >
+                  {preset}×
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
         {!simplified && (
           <button
             type="button"
@@ -323,16 +350,21 @@ export default function ActionBar({
         </Button>
       )}
       {simplified && lastOutput && !isGenerating && (
-        <Button
-          variant="subtle"
-          block
-          loading={isDownloading}
-          onClick={handleDownload}
-          leading={!isDownloading && <Download size={14} />}
-          className="mt-[6px]"
-        >
-          {t('clone.download_audio')}
-        </Button>
+        <div className="mt-[6px] grid grid-cols-2 gap-[6px]">
+          {['wav', 'mp3'].map((format) => (
+            <Button
+              key={format}
+              variant="subtle"
+              block
+              loading={isDownloading}
+              onClick={() => handleDownload(format)}
+              leading={!isDownloading && <Download size={14} />}
+              aria-label={`${t('clone.download_audio')} ${format.toUpperCase()}`}
+            >
+              {format.toUpperCase()}
+            </Button>
+          ))}
+        </div>
       )}
       {isGenerating && (
         <Progress
