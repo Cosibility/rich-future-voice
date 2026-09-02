@@ -39,6 +39,8 @@ def test_public_notebook_pins_the_reviewed_application_commit():
     assert "ee8d17abc6bf27b2985429817fd47289872d1ac9" in source
     assert '"pull"' not in source
     assert "source_revision != SOURCE_REVISION" in source
+    assert "serve_kernel_port_as_iframe" not in source
+    assert "MỞ RICH FUTURE VOICE" in source
 
 
 def test_frontend_advisory_overrides_are_pinned_to_patched_releases():
